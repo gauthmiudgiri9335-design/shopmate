@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#1e2a5e"/>
+  <title>ShopMate</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="app-title">🛒 ShopMate</span>
+  <div class="topbar-btns">
+    <button onclick="showPage('history')">📜 इतिहास</button>
+    <button onclick="showPage('products')">📦 माल</button>
+  </div>
+</div>
+
+<!-- HOME PAGE -->
+<div id="page-home" class="page active">
+
+  <!-- Date Section -->
+  <div class="date-section">
+    <div class="date-row">
+      <label>📅 दिनांक १ :</label>
+      <input type="date" id="date1" />
+      <span id="day1" class="day-label"></span>
+    </div>
+    <div id="date2-row" class="date-row hidden">
+      <label>📅 दिनांक २ :</label>
+      <input type="date" id="date2" />
+      <span id="day2" class="day-label"></span>
+      <button class="small-btn red" onclick="removeDate2()">✕</button>
+    </div>
+    <button class="add-date-btn" onclick="addDate2()">+ दुसरा दिवस जोडा</button>
+    <button class="add-date-btn holiday-btn" onclick="markHoliday()">🏖️ सुट्टी म्हणून सेव्ह करा</button>
+  </div>
+
+  <!-- Main Table -->
+  <div class="table-wrapper">
+    <table id="main-table">
+      <thead>
+        <tr>
+          <th>मालाचे नाव</th>
+          <th>दिलेला माल</th>
+          <th>एकूण</th>
+          <th>शिल्लक</th>
+          <th>विक्री</th>
+          <th>रक्कम</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+  <button class="add-row-btn" onclick="addCustomRow()">+ नवीन माल जोडा</button>
+
+  <div class="total-box">
+    <span>एकूण रक्कम (नफा) :</span>
+    <span id="total-rakkam">₹0</span>
+  </div>
+
+  <!-- Expense Section -->
+  <div class="section-title">💸 दैनंदिन खर्च</div>
+  <div class="table-wrapper">
+    <table id="expense-table">
+      <thead>
+        <tr>
+          <th>खर्चाचे नाव</th>
+          <th>रक्कम</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="expense-body"></tbody>
+    </table>
+  </div>
+  <button class="add-row-btn" onclick="addExpenseRow()">+ खर्च जोडा</button>
+
+  <div class="total-box red-box">
+    <span>एकूण खर्च :</span>
+    <span id="total-expense">₹0</span>
+  </div>
+
+  <!-- Final Calculation -->
+  <div class="final-box">
+    <div class="final-row">
+      <span>एकूण रक्कम</span>
+      <span id="final-rakkam">₹0</span>
+    </div>
+    <div class="final-row">
+      <span>(-) एकूण खर्च</span>
+      <span id="final-expense">₹0</span>
+    </div>
+    <div class="final-row total-row">
+      <span>= निव्वळ नफा</span>
+      <span id="final-total">₹0</span>
+    </div>
+    <div class="final-row cash-row">
+      <span>💰 रोख रक्कम</span>
+      <span id="final-cash">₹0</span>
+    </div>
+  </div>
+
+  <!-- Rakh Hisheb -->
+  <div class="section-title">💰 रोख हिशेब</div>
+  <div class="rakh-section">
+    <div class="rakh-row">
+      <label>निव्वळ नफा</label>
+      <span id="rakh-nafa" style="font-weight:700; color:var(--green); font-size:15px;">₹0</span>
+    </div>
+    <div class="rakh-row">
+      <label>रोख रक्कम (टाइप करा)</label>
+      <input type="number" class="rakh-input" id="rakh-input" placeholder="0" oninput="calculateBaki()" />
+    </div>
+    <div class="rakh-row baki-row">
+      <label>= बाकी</label>
+      <span id="baki-amount" class="baki-zero">₹0</span>
+    </div>
+  </div>
+
+  <!-- Yene Ahe Section -->
+  <div class="section-title">📋 येणे आहे</div>
+  <div class="table-wrapper">
+    <table class="yene-table">
+      <thead>
+        <tr>
+          <th style="text-align:left; padding-left:8px;">नाव</th>
+          <th style="text-align:right; padding-right:8px;">रक्कम (₹)</th>
+          <th style="width:36px;"></th>
+        </tr>
+      </thead>
+      <tbody id="yene-body"></tbody>
+    </table>
+  </div>
+  <button class="add-row-btn" onclick="addYeneRow()">+ येणे जोडा</button>
+  <div class="yene-total">
+    <span>एकूण येणे :</span>
+    <span id="yene-total">₹0</span>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-btns">
+    <button class="save-btn" onclick="saveRecord()">💾 सेव्ह करा</button>
+    <button class="print-btn" onclick="printRecord()">🖨️ प्रिंट करा</button>
+  </div>
+
+</div>
+
+<!-- HISTORY PAGE -->
+<div id="page-history" class="page">
+  <div class="page-header">
+    <button onclick="showPage('home')">← परत</button>
+    <h2>📜 इतिहास</h2>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<!-- PRODUCTS PAGE -->
+<div id="page-products" class="page">
+  <div class="page-header">
+    <button onclick="showPage('home')">← परत</button>
+    <h2>📦 माल यादी</h2>
+  </div>
+  <div id="products-list"></div>
+  <button class="add-row-btn" onclick="addNewProduct()">+ नवीन माल जोडा</button>
+</div>
+
+<!-- RECORD VIEW/EDIT PAGE -->
+<div id="page-record-view" class="page">
+  <div class="page-header">
+    <button onclick="showPage('history')">← परत</button>
+    <h2 id="record-view-title">📄 नोंद</h2>
+  </div>
+
+  <div class="view-mode-banner" id="view-mode-banner">
+    👁️ फक्त बघण्यासाठी — एडिट करण्यासाठी खालील बटण दाबा
+  </div>
+
+  <div class="action-btns" style="margin-bottom:14px;">
+    <button class="print-btn" id="edit-toggle-btn" onclick="toggleEditMode()">✏️ एडिट करा</button>
+    <button class="print-btn" onclick="printRecord()">🖨️ प्रिंट करा</button>
+  </div>
+
+  <div class="date-section">
+    <div class="date-row">
+      <label>📅 दिनांक:</label>
+      <span id="rv-date-label" class="day-label"></span>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table id="rv-main-table">
+      <thead>
+        <tr>
+          <th>मालाचे नाव</th>
+          <th>दिलेला माल</th>
+          <th>एकूण</th>
+          <th>शिल्लक</th>
+          <th>विक्री</th>
+          <th>रक्कम</th>
+        </tr>
+      </thead>
+      <tbody id="rv-table-body"></tbody>
+    </table>
+  </div>
+
+  <div class="total-box">
+    <span>एकूण रक्कम :</span>
+    <span id="rv-total-rakkam">₹0</span>
+  </div>
+
+  <div class="section-title">💸 दैनंदिन खर्च</div>
+  <div class="table-wrapper">
+    <table id="rv-expense-table">
+      <thead>
+        <tr>
+          <th>खर्चाचे नाव</th>
+          <th>रक्कम</th>
+        </tr>
+      </thead>
+      <tbody id="rv-expense-body"></tbody>
+    </table>
+  </div>
+
+  <div class="total-box red-box">
+    <span>एकूण खर्च :</span>
+    <span id="rv-total-expense">₹0</span>
+  </div>
+
+  <div class="final-box">
+    <div class="final-row">
+      <span>एकूण रक्कम</span>
+      <span id="rv-final-rakkam">₹0</span>
+    </div>
+    <div class="final-row">
+      <span>(-) एकूण खर्च</span>
+      <span id="rv-final-expense">₹0</span>
+    </div>
+    <div class="final-row total-row">
+      <span>= निव्वळ नफा</span>
+      <span id="rv-final-total">₹0</span>
+    </div>
+  </div>
+
+  <!-- Yene in view -->
+  <div class="section-title" id="rv-yene-section" style="display:none;">📋 येणे आहे</div>
+  <div class="table-wrapper" id="rv-yene-wrapper" style="display:none;">
+    <table class="yene-table">
+      <thead>
+        <tr>
+          <th style="text-align:left; padding-left:8px;">नाव</th>
+          <th style="text-align:right; padding-right:8px;">रक्कम (₹)</th>
+        </tr>
+      </thead>
+      <tbody id="rv-yene-body"></tbody>
+    </table>
+  </div>
+
+  <div class="action-btns" id="rv-save-section" style="display:none;">
+    <button class="save-btn" onclick="saveEditedRecord()">💾 बदल सेव्ह करा</button>
+  </div>
+</div>
+
+<!-- ADD PRODUCT MODAL -->
+<div id="add-product-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h3>+ नवीन माल जोडा</h3>
+    <label>गट निवडा</label>
+    <select id="modal-group">
+      <option value="g1">बॉटल्स (F/N)</option>
+      <option value="g2">90 ml</option>
+      <option value="g3">कोल्ड ड्रिंक्स</option>
+      <option value="g4">सिगारेट</option>
+    </select>
+    <label>मालाचे नाव</label>
+    <input type="text" id="modal-name" placeholder="उदा. टँगो पंच - F" />
+    <label>किंमत (प्रति नग)</label>
+    <input type="number" id="modal-price" placeholder="उदा. 90" />
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeAddProductModal()">रद्द करा</button>
+      <button class="modal-save" onclick="confirmAddProduct()">जोडा</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+</body>
+</html>

@@ -1,12 +1,14 @@
 // ============================================
-// SHOPMATE — COMPLETE APP LOGIC (FIXED)
+// SHOPMATE — COMPLETE APP.JS — FULLY UPDATED
+// Changes:
+// 1. Date change keeps filled data intact
+// 2. Auto refresh after saving
+// 3. No placeholder text in dilela maal boxes
 // ============================================
 
 // ── HELPER: safely get product name from a table row ──
 function getNameFromRow(tr) {
-  // Name is stored in data-productname attribute — most reliable method
   if (tr.dataset.productname) return tr.dataset.productname.trim();
-  // Fallback: find the name span directly
   const nameSpan = tr.querySelector(".product-name-text");
   if (nameSpan) return nameSpan.textContent.trim();
   return "";
@@ -66,10 +68,10 @@ let EXPENSES_LIST = [
   { id: "e6", name: "सिगारेट"},
 ];
 
-let currentRows    = [];
+let currentRows     = [];
 let currentExpenses = [];
-let rowCounter     = 1000;
-let yeneCounter    = 3000;
+let rowCounter      = 1000;
+let yeneCounter     = 3000;
 
 // ── INIT ──
 window.onload = function () {
@@ -115,11 +117,13 @@ function setDefaultDate() {
   document.getElementById("date1").value = dateStr;
   updateDayLabel("date1", "day1");
 
+  // CHANGE 1: Date change does NOT call loadYesterdayShillak()
+  // so all filled data stays intact when owner changes date
   document.getElementById("date1").addEventListener("change", function () {
     updateDayLabel("date1", "day1");
     checkIfDateAlreadySaved();
-    // NOTE: We do NOT call loadYesterdayShillak() here anymore
-    // so changing date keeps all filled data intact
+    // NOTE: loadYesterdayShillak() removed here intentionally
+    // Filled data is preserved when date changes
   });
 
   document.getElementById("date2").addEventListener("change", function () {
@@ -187,8 +191,7 @@ function hideDateWarning() {
 }
 
 // ── SHILLAK CARRY-FORWARD ──
-// Finds most recent NON-HOLIDAY record before selected date
-// and fills each product's शिल्लक into दिलेला माल by name match
+// Only called on page load (not on date change)
 async function loadYesterdayShillak() {
   const selectedDate = document.getElementById("date1").value;
   if (!selectedDate) { clearAllDilelaInputs(); return; }
@@ -201,14 +204,13 @@ async function loadYesterdayShillak() {
       clearAllDilelaInputs(); return;
     }
 
-    // Find the latest non-holiday record whose end date is before selected date
     let bestRecord  = null;
     let bestEndDate = null;
 
     records.forEach(function (rec) {
       const d = rec.data;
       if (!d || !d.date1) return;
-      if (d.isHoliday) return; // skip holidays
+      if (d.isHoliday) return;
       const recordEndDate = d.date2 ? d.date2 : d.date1;
       if (recordEndDate >= selectedDate) return;
       if (bestEndDate === null || recordEndDate > bestEndDate) {
@@ -225,7 +227,6 @@ async function loadYesterdayShillak() {
     console.log("✅ Using record ending on:", bestEndDate);
     clearAllDilelaInputs();
 
-    // Build name → शिल्लक map from previous record
     const shillakMap = {};
     (bestRecord.data.products || []).forEach(function (p) {
       if (!p.name) return;
@@ -237,7 +238,6 @@ async function loadYesterdayShillak() {
 
     console.log("📦 शिल्लक map keys:", Object.keys(shillakMap));
 
-    // Fill ONLY matching rows using data-productname attribute
     let filled = 0;
     document.querySelectorAll("#table-body tr[data-id]").forEach(function (tr) {
       const name = getNameFromRow(tr);
@@ -247,7 +247,7 @@ async function loadYesterdayShillak() {
         const inp = tr.querySelector(".dilela-input");
         if (inp) {
           inp.value       = shillak;
-          inp.placeholder = "";
+          inp.placeholder = ""; // CHANGE 3: no placeholder text
           calculateRow(tr.dataset.id);
           filled++;
         }
@@ -262,12 +262,11 @@ async function loadYesterdayShillak() {
   }
 }
 
-function clearDilela() {
+function clearAllDilelaInputs() {
   document.querySelectorAll("#table-body .dilela-input").forEach(function (inp) {
-    inp.value = "";
-    inp.placeholder = "";
+    inp.value       = "";
+    inp.placeholder = ""; // CHANGE 3: no placeholder text
   });
-  
   document.querySelectorAll("#table-body tr[data-id]").forEach(function (tr) {
     calculateRow(tr.dataset.id);
   });
@@ -298,14 +297,12 @@ function buildMainTable() {
 }
 
 // ── ADD PRODUCT ROW ──
-// KEY FIX: stores name in data-productname attribute AND .product-name-text span
-// so name extraction is always reliable regardless of DOM nesting
 function addProductRow(id, name, price, dilelaVal, shillakVal) {
   const tbody = document.getElementById("table-body");
   const tr    = document.createElement("tr");
   tr.dataset.id          = id;
   tr.dataset.price       = price;
-  tr.dataset.productname = name; // ← RELIABLE name storage
+  tr.dataset.productname = name;
   tr.className           = "product-row";
 
   tr.innerHTML = `
@@ -331,7 +328,7 @@ function addProductRow(id, name, price, dilelaVal, shillakVal) {
     </td>
     <td data-label="शिल्लक">
       <span class="cell-label">शिल्लक</span>
-      <input type="number" class="shillak-input" placeholder="0"
+      <input type="number" class="shillak-input" placeholder=""
         value="${shillakVal || ''}"
         oninput="calculateRow('${id}')"
         onkeydown="moveFocus(event, this, 'shillak')" />
@@ -431,7 +428,7 @@ function addExpenseRowToDOM(id, name, amountVal) {
   tr.dataset.id = id;
   tr.innerHTML = `
     <td class="name-cell">${name}</td>
-    <td><input type="number" class="expense-input" placeholder="0"
+    <td><input type="number" class="expense-input" placeholder=""
       value="${amountVal || ''}" oninput="calculateAll()" /></td>
     <td><button class="small-btn red" onclick="deleteExpenseRow('${id}')">✕</button></td>
   `;
@@ -471,7 +468,7 @@ function addYeneRow(nameVal, amountVal) {
   tr.dataset.id = rowId;
   tr.innerHTML = `
     <td><input type="text" class="yene-name-input" placeholder="नाव लिहा" value="${nameVal || ''}" /></td>
-    <td><input type="number" class="yene-amount-input" placeholder="0" value="${amountVal || ''}" oninput="calculateYeneTotal()" /></td>
+    <td><input type="number" class="yene-amount-input" placeholder="" value="${amountVal || ''}" oninput="calculateYeneTotal()" /></td>
     <td><button class="small-btn red" onclick="deleteYeneRow('${rowId}')">✕</button></td>
   `;
   tbody.appendChild(tr);
@@ -544,7 +541,6 @@ function saveExpensesToStorage() {
 }
 
 // ── COLLECT FORM DATA ──
-// KEY FIX: uses data-productname attribute for reliable name extraction
 function collectFormData() {
   const date1 = document.getElementById("date1").value;
   const date2 = document.getElementById("date2").value;
@@ -553,7 +549,7 @@ function collectFormData() {
 
   const products = [];
   document.querySelectorAll("#table-body tr[data-id]").forEach(function (tr) {
-    const name    = getNameFromRow(tr); // ← FIXED: use reliable helper
+    const name    = getNameFromRow(tr);
     const dilela  = tr.querySelector(".dilela-input").value;
     const ekun    = tr.querySelector(".ekun-cell").innerText;
     const shillak = tr.querySelector(".shillak-input").value;
@@ -590,6 +586,7 @@ function collectFormData() {
 }
 
 // ── SAVE RECORD ──
+// CHANGE 2: Auto refresh after saving
 async function saveRecord() {
   const data = collectFormData();
   if (!data.date1) { alert("कृपया तारीख निवडा!"); return; }
@@ -621,18 +618,18 @@ async function saveRecord() {
       const { error: upErr } = await supabaseClient
         .from("records").update({ data: data }).eq("id", conflicting.id);
       if (upErr) throw upErr;
-      alert("✅ नोंद यशस्वीरित्या अपडेट झाली!\n\nपेज रिफ्रेश होत आहे...");
+      alert("✅ नोंद यशस्वीरित्या अपडेट झाली!\n\nनवीन नोंदीसाठी पेज रिफ्रेश होत आहे...");
     } else {
       const { error: insErr } = await supabaseClient
         .from("records").insert([{ data: data }]);
       if (insErr) throw insErr;
-      alert("✅ नोंद यशस्वीरित्या सेव्ह झाली!\n\nपेज रिफ्रेश होत आहे...");
+      alert("✅ नोंद यशस्वीरित्या सेव्ह झाली!\n\nनवीन नोंदीसाठी पेज रिफ्रेश होत आहे...");
     }
 
     hideDateWarning();
-    
-    // Auto refresh after 1 second so page is fresh for next entry
-    setTimeout(function() {
+
+    // CHANGE 2: Auto refresh after 1 second
+    setTimeout(function () {
       window.location.reload();
     }, 1000);
 
@@ -746,7 +743,6 @@ async function viewHistoryRecord(id) {
   }
 }
 
-// KEY FIX: product name shown correctly using p.name directly from saved data
 function buildRecordViewPage(d) {
   let dateLabel = (d.day1 || "") + ", " + formatDate(d.date1);
   if (d.date2) {
@@ -755,11 +751,10 @@ function buildRecordViewPage(d) {
   }
   document.getElementById("rv-date-label").innerText = dateLabel;
 
-  // Products — name comes directly from p.name (saved in collectFormData)
   const tbody = document.getElementById("rv-table-body");
   tbody.innerHTML = "";
   (d.products || []).forEach(function (p, i) {
-    if (!p.name) return; // skip empty name rows
+    if (!p.name) return;
     const tr = document.createElement("tr");
     tr.dataset.index = i;
     tr.dataset.price = p.price || 0;
@@ -777,7 +772,6 @@ function buildRecordViewPage(d) {
     tbody.appendChild(tr);
   });
 
-  // Expenses
   const expBody = document.getElementById("rv-expense-body");
   expBody.innerHTML = "";
   (d.expenses || []).forEach(function (exp, i) {
@@ -791,14 +785,12 @@ function buildRecordViewPage(d) {
     expBody.appendChild(tr);
   });
 
-  // Totals
   document.getElementById("rv-total-rakkam").innerText  = d.totalRakkam  || "₹0";
   document.getElementById("rv-total-expense").innerText = d.totalExpense || "₹0";
   document.getElementById("rv-final-rakkam").innerText  = d.totalRakkam  || "₹0";
   document.getElementById("rv-final-expense").innerText = d.totalExpense || "₹0";
   document.getElementById("rv-final-total").innerText   = d.netProfit    || "₹0";
 
-  // Yene section
   const yeneEntries = d.yeneEntries || [];
   const yeneSection = document.getElementById("rv-yene-section");
   const yeneWrapper = document.getElementById("rv-yene-wrapper");
@@ -1018,7 +1010,5 @@ async function markHoliday() {
 
   } catch (err) {
     alert("❌ चूक झाली: " + err.message);
-
-    
   }
 }

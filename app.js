@@ -457,7 +457,7 @@ function deleteExpenseRow(id) {
 function buildYeneTable() {
   const tbody = document.getElementById("yene-body");
   tbody.innerHTML = "";
-  addYeneRow(); addYeneRow(); addYeneRow();
+  addYeneRow();
 }
 
 function addYeneRow(nameVal, amountVal) {

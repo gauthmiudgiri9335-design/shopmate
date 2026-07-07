@@ -43,7 +43,7 @@ let PRODUCTS = [
   { id: "p25", group: "g3", name: "सोडा",           price: 7   },
   { id: "p26", group: "g3", name: "लेमन",           price: 10  },
   { id: "p27", group: "g3", name: "पाणी",           price: 10  },
-  { id: "p28", group: "g4", name: "A-10",           price: 2   },
+  { id: "p28", group: "g4", name: "A-10",           price: 1   },
   { id: "p29", group: "g4", name: "गरम",            price: 25  },
   { id: "p30", group: "g4", name: "ब्रिस्टॉल",      price: 12  },
   { id: "p31", group: "g4", name: "गोल्ड फ्लॅक",   price: 15  },

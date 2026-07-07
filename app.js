@@ -117,9 +117,11 @@ function setDefaultDate() {
 
   document.getElementById("date1").addEventListener("change", function () {
     updateDayLabel("date1", "day1");
-    loadYesterdayShillak();
     checkIfDateAlreadySaved();
+    // NOTE: We do NOT call loadYesterdayShillak() here anymore
+    // so changing date keeps all filled data intact
   });
+
   document.getElementById("date2").addEventListener("change", function () {
     updateDayLabel("date2", "day2");
   });
@@ -245,7 +247,7 @@ async function loadYesterdayShillak() {
         const inp = tr.querySelector(".dilela-input");
         if (inp) {
           inp.value       = shillak;
-          inp.placeholder = shillak + "+";
+          inp.placeholder = "";
           calculateRow(tr.dataset.id);
           filled++;
         }
@@ -260,11 +262,12 @@ async function loadYesterdayShillak() {
   }
 }
 
-function clearAllDilelaInputs() {
+function clearDilela() {
   document.querySelectorAll("#table-body .dilela-input").forEach(function (inp) {
-    inp.value       = "";
-    inp.placeholder = "0";
+    inp.value = "";
+    inp.placeholder = "";
   });
+  
   document.querySelectorAll("#table-body tr[data-id]").forEach(function (tr) {
     calculateRow(tr.dataset.id);
   });
@@ -317,7 +320,7 @@ function addProductRow(id, name, price, dilelaVal, shillakVal) {
     </td>
     <td data-label="दिलेला माल">
       <span class="cell-label">दिलेला</span>
-      <input type="text" class="dilela-input" placeholder="0"
+      <input type="text" class="dilela-input" placeholder=""
         value="${dilelaVal || ''}"
         oninput="calculateRow('${id}')"
         onkeydown="moveFocus(event, this, 'dilela')" />
@@ -618,15 +621,20 @@ async function saveRecord() {
       const { error: upErr } = await supabaseClient
         .from("records").update({ data: data }).eq("id", conflicting.id);
       if (upErr) throw upErr;
-      alert("✅ नोंद यशस्वीरित्या अपडेट झाली!");
+      alert("✅ नोंद यशस्वीरित्या अपडेट झाली!\n\nपेज रिफ्रेश होत आहे...");
     } else {
       const { error: insErr } = await supabaseClient
         .from("records").insert([{ data: data }]);
       if (insErr) throw insErr;
-      alert("✅ नोंद यशस्वीरित्या सेव्ह झाली!");
+      alert("✅ नोंद यशस्वीरित्या सेव्ह झाली!\n\nपेज रिफ्रेश होत आहे...");
     }
 
     hideDateWarning();
+    
+    // Auto refresh after 1 second so page is fresh for next entry
+    setTimeout(function() {
+      window.location.reload();
+    }, 1000);
 
   } catch (err) {
     console.error(err);
@@ -1010,5 +1018,7 @@ async function markHoliday() {
 
   } catch (err) {
     alert("❌ चूक झाली: " + err.message);
+
+    
   }
 }

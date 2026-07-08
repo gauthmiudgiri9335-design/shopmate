@@ -228,13 +228,40 @@ async function loadYesterdayShillak() {
     clearAllDilelaInputs();
 
     const shillakMap = {};
-    (bestRecord.data.products || []).forEach(function (p) {
-      if (!p.name) return;
-      const shillak = parseFloat(p.shillak) || 0;
-      if (shillak > 0) {
-        shillakMap[p.name.trim()] = shillak;
-      }
-    });
+(bestRecord.data.products || []).forEach(function (p) {
+  if (!p.name) return;
+
+  // CORRECT ORDER OF PRIORITY:
+  // 1. Use p.shillak directly (what owner typed in शिल्लक box)
+  // 2. If missing/zero, calculate from ekun - vikri
+  // 3. Never use dilela or its first number
+
+  let shillak = 0;
+
+  // Try direct shillak field first
+  const directShillak = parseFloat(p.shillak);
+  if (!isNaN(directShillak) && directShillak > 0) {
+    shillak = directShillak;
+  } else {
+    // Fallback: calculate from ekun - vikri
+    const ekun  = parseFloat(p.ekun)  || 0;
+    const vikri = parseFloat(p.vikri) || 0;
+    const calculated = ekun - vikri;
+    if (calculated > 0) shillak = calculated;
+  }
+
+  console.log(
+    "▶", p.name,
+    "| shillak field:", p.shillak,
+    "| ekun:", p.ekun,
+    "| vikri:", p.vikri,
+    "| USING:", shillak
+  );
+
+  if (shillak > 0) {
+    shillakMap[p.name.trim()] = shillak;
+  }
+});
 
     console.log("📦 शिल्लक map keys:", Object.keys(shillakMap));
 
@@ -558,7 +585,7 @@ function collectFormData() {
     const price   = tr.dataset.price;
     products.push({ name, price, dilela, ekun, shillak, vikri, rakkam });
   });
-
+ 
   const expenses = [];
   document.querySelectorAll("#expense-body tr[data-id]").forEach(function (tr) {
     const name   = tr.querySelector(".name-cell").innerText.trim();

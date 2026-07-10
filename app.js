@@ -9,6 +9,43 @@ function getNameFromRow(tr) {
   return "";
 }
 
+// Default product list — source of truth for prices
+const DEFAULT_PRODUCTS = [
+  { id:"p1",  group:"g1", name:"टँगो पंच - F",  price:360 },
+  { id:"p2",  group:"g1", name:"संत्रा - F",     price:360 },
+  { id:"p3",  group:"g1", name:"टँगो पंच - N",   price:90  },
+  { id:"p4",  group:"g1", name:"संत्रा - N",     price:90  },
+  { id:"p5",  group:"g1", name:"जी. एम. - N",    price:90  },
+  { id:"p6",  group:"g1", name:"सौफ - N",        price:90  },
+  { id:"p7",  group:"g1", name:"Vodka - N",      price:90  },
+  { id:"p8",  group:"g1", name:"मँगो - N",       price:90  },
+  { id:"p9",  group:"g1", name:"ब्लू - N",       price:90  },
+  { id:"p10", group:"g1", name:"ॲप्पल - N",      price:90  },
+  { id:"p11", group:"g2", name:"टँगो 90",        price:46  },
+  { id:"p12", group:"g2", name:"वोल्का 90",      price:46  },
+  { id:"p13", group:"g2", name:"जामुन 90",       price:46  },
+  { id:"p14", group:"g2", name:"CM 90",          price:60  },
+  { id:"p15", group:"g2", name:"ब्लू 90",        price:46  },
+  { id:"p16", group:"g2", name:"गोल्डी 90",      price:34  },
+  { id:"p17", group:"g2", name:"पावर 90",        price:40  },
+  { id:"p18", group:"g2", name:"Apple 90",       price:46  },
+  { id:"p19", group:"g2", name:"संत्रा 90",      price:46  },
+  { id:"p20", group:"g2", name:"GM 90",          price:46  },
+  { id:"p21", group:"g2", name:"S 90",           price:46  },
+  { id:"p22", group:"g2", name:"मँगो 90",        price:46  },
+  { id:"p23", group:"g3", name:"स्प्राईट",       price:20  },
+  { id:"p24", group:"g3", name:"Jeera सोडा",     price:12  },
+  { id:"p25", group:"g3", name:"सोडा",           price:7   },
+  { id:"p26", group:"g3", name:"लेमन",           price:10  },
+  { id:"p27", group:"g3", name:"पाणी",           price:10  },
+  { id:"p28", group:"g4", name:"A-10",           price:1   },
+  { id:"p29", group:"g4", name:"गरम",            price:25  },
+  { id:"p30", group:"g4", name:"ब्रिस्टॉल",      price:12  },
+  { id:"p31", group:"g4", name:"गोल्ड फ्लॅक",   price:15  },
+  { id:"p32", group:"g4", name:"इंडिमेंट",       price:15  },
+  { id:"p33", group:"g4", name:"Focus",          price:8   },
+];
+
 let PRODUCTS = [
   { id:"p1",  group:"g1", name:"टँगो पंच - F",  price:360 },
   { id:"p2",  group:"g1", name:"संत्रा - F",     price:360 },
@@ -441,12 +478,22 @@ function saveProductsToStorage() {
   localStorage.setItem("shopmate_products", JSON.stringify(PRODUCTS));
 }
 function loadProductsFromStorage() {
-  // Clear old product cache so updated prices take effect
-  localStorage.removeItem("shopmate_products");
+  // Always update prices of default products from code
+  // but keep any custom products owner added
+  const saved = localStorage.getItem("shopmate_products");
+  if (saved) {
+    const savedProducts = JSON.parse(saved);
+    // Keep only custom products (not in default list)
+    const customProducts = savedProducts.filter(function(sp) {
+      return !DEFAULT_PRODUCTS.find(function(dp) { return dp.id === sp.id; });
+    });
+    // Use default products (with updated prices) + custom products
+    PRODUCTS = [...DEFAULT_PRODUCTS, ...customProducts];
+    localStorage.setItem("shopmate_products", JSON.stringify(PRODUCTS));
+  }
   const e = localStorage.getItem("shopmate_expenses");
   if (e) EXPENSES_LIST = JSON.parse(e);
-}
-function saveExpensesToStorage() {
+}function saveExpensesToStorage() {
   localStorage.setItem("shopmate_expenses", JSON.stringify(EXPENSES_LIST));
 }
 

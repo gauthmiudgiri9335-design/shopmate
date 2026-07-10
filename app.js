@@ -37,7 +37,7 @@ let PRODUCTS = [
   { id:"p25", group:"g3", name:"सोडा",           price:7   },
   { id:"p26", group:"g3", name:"लेमन",           price:10  },
   { id:"p27", group:"g3", name:"पाणी",           price:10  },
-  { id:"p28", group:"g4", name:"A-10",           price:2   },
+  { id:"p28", group:"g4", name:"A-10",           price:1   },
   { id:"p29", group:"g4", name:"गरम",            price:25  },
   { id:"p30", group:"g4", name:"ब्रिस्टॉल",      price:12  },
   { id:"p31", group:"g4", name:"गोल्ड फ्लॅक",   price:15  },
@@ -441,8 +441,8 @@ function saveProductsToStorage() {
   localStorage.setItem("shopmate_products", JSON.stringify(PRODUCTS));
 }
 function loadProductsFromStorage() {
-  const p = localStorage.getItem("shopmate_products");
-  if (p) PRODUCTS = JSON.parse(p);
+  // Clear old product cache so updated prices take effect
+  localStorage.removeItem("shopmate_products");
   const e = localStorage.getItem("shopmate_expenses");
   if (e) EXPENSES_LIST = JSON.parse(e);
 }

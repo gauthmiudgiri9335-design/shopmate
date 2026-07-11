@@ -1,52 +1,16 @@
 // ============================================
-// SHOPMATE — COMPLETE APP.JS — FINAL VERSION
+// SHOPMATE — COMPLETE APP.JS — DEFINITIVE FIX
 // ============================================
 
 function getNameFromRow(tr) {
   if (tr.dataset.productname) return tr.dataset.productname.trim();
-  const nameSpan = tr.querySelector(".product-name-text");
-  if (nameSpan) return nameSpan.textContent.trim();
+  const s = tr.querySelector(".product-name-text");
+  if (s) return s.textContent.trim();
   return "";
 }
 
-// Default product list — source of truth for prices
+// DEFAULT_PRODUCTS — source of truth for prices
 const DEFAULT_PRODUCTS = [
-  { id:"p1",  group:"g1", name:"टँगो पंच - F",  price:360 },
-  { id:"p2",  group:"g1", name:"संत्रा - F",     price:360 },
-  { id:"p3",  group:"g1", name:"टँगो पंच - N",   price:90  },
-  { id:"p4",  group:"g1", name:"संत्रा - N",     price:90  },
-  { id:"p5",  group:"g1", name:"जी. एम. - N",    price:90  },
-  { id:"p6",  group:"g1", name:"सौफ - N",        price:90  },
-  { id:"p7",  group:"g1", name:"Vodka - N",      price:90  },
-  { id:"p8",  group:"g1", name:"मँगो - N",       price:90  },
-  { id:"p9",  group:"g1", name:"ब्लू - N",       price:90  },
-  { id:"p10", group:"g1", name:"ॲप्पल - N",      price:90  },
-  { id:"p11", group:"g2", name:"टँगो 90",        price:46  },
-  { id:"p12", group:"g2", name:"वोल्का 90",      price:46  },
-  { id:"p13", group:"g2", name:"जामुन 90",       price:46  },
-  { id:"p14", group:"g2", name:"CM 90",          price:60  },
-  { id:"p15", group:"g2", name:"ब्लू 90",        price:46  },
-  { id:"p16", group:"g2", name:"गोल्डी 90",      price:34  },
-  { id:"p17", group:"g2", name:"पावर 90",        price:40  },
-  { id:"p18", group:"g2", name:"Apple 90",       price:46  },
-  { id:"p19", group:"g2", name:"संत्रा 90",      price:46  },
-  { id:"p20", group:"g2", name:"GM 90",          price:46  },
-  { id:"p21", group:"g2", name:"S 90",           price:46  },
-  { id:"p22", group:"g2", name:"मँगो 90",        price:46  },
-  { id:"p23", group:"g3", name:"स्प्राईट",       price:20  },
-  { id:"p24", group:"g3", name:"Jeera सोडा",     price:12  },
-  { id:"p25", group:"g3", name:"सोडा",           price:7   },
-  { id:"p26", group:"g3", name:"लेमन",           price:10  },
-  { id:"p27", group:"g3", name:"पाणी",           price:10  },
-  { id:"p28", group:"g4", name:"A-10",           price:1   },
-  { id:"p29", group:"g4", name:"गरम",            price:25  },
-  { id:"p30", group:"g4", name:"ब्रिस्टॉल",      price:12  },
-  { id:"p31", group:"g4", name:"गोल्ड फ्लॅक",   price:15  },
-  { id:"p32", group:"g4", name:"इंडिमेंट",       price:15  },
-  { id:"p33", group:"g4", name:"Focus",          price:8   },
-];
-
-let PRODUCTS = [
   { id:"p1",  group:"g1", name:"टँगो पंच - F",  price:360 },
   { id:"p2",  group:"g1", name:"संत्रा - F",     price:360 },
   { id:"p3",  group:"g1", name:"टँगो पंच - N",   price:90  },
@@ -87,13 +51,14 @@ const GROUP_NAMES = {
   g3:"कोल्ड ड्रिंक्स", g4:"सिगारेट"
 };
 
+let PRODUCTS = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+
 let EXPENSES_LIST = [
   { id:"e1", name:"चहा" }, { id:"e2", name:"ॲप" },
   { id:"e3", name:"झार" }, { id:"e4", name:"पगार" },
   { id:"e5", name:"पिग्मी" }, { id:"e6", name:"सिगारेट" },
 ];
 
-let currentRows = [], currentExpenses = [];
 let rowCounter = 1000, yeneCounter = 3000;
 
 // ── INIT ──
@@ -109,22 +74,19 @@ window.onload = function () {
 };
 
 function blockNumberScrollChange() {
-  document.addEventListener("wheel", function (e) {
+  document.addEventListener("wheel", function(e) {
     if (document.activeElement.type === "number") document.activeElement.blur();
   }, { passive: true });
 }
 
-function moveFocus(event, currentInput, columnClass) {
+function moveFocus(event, inp, cls) {
   if (event.key !== "Tab" && event.key !== "Enter") return;
   event.preventDefault();
-  const allInputs = Array.from(document.querySelectorAll("#table-body ." + columnClass + "-input"));
-  const currentIndex = allInputs.indexOf(currentInput);
-  if (currentIndex === -1) return;
-  const nextIndex = event.shiftKey ? currentIndex - 1 : currentIndex + 1;
-  if (nextIndex >= 0 && nextIndex < allInputs.length) {
-    allInputs[nextIndex].focus();
-    allInputs[nextIndex].select();
-  }
+  const all = Array.from(document.querySelectorAll("#table-body ." + cls + "-input"));
+  const i = all.indexOf(inp);
+  if (i === -1) return;
+  const next = event.shiftKey ? i - 1 : i + 1;
+  if (next >= 0 && next < all.length) { all[next].focus(); all[next].select(); }
 }
 
 // ── DATE ──
@@ -132,21 +94,22 @@ function setDefaultDate() {
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("date1").value = today;
   updateDayLabel("date1","day1");
-  // Date change does NOT clear filled data
-  document.getElementById("date1").addEventListener("change", function () {
+  document.getElementById("date1").addEventListener("change", function() {
     updateDayLabel("date1","day1");
     checkIfDateAlreadySaved();
+    // NOTE: NOT calling loadYesterdayShillak here
+    // so filled data stays when owner changes date
   });
-  document.getElementById("date2").addEventListener("change", function () {
+  document.getElementById("date2").addEventListener("change", function() {
     updateDayLabel("date2","day2");
   });
 }
 
 function updateDayLabel(dateId, labelId) {
-  const val = document.getElementById(dateId).value;
-  if (!val) return;
+  const v = document.getElementById(dateId).value;
+  if (!v) return;
   const days = ["रविवार","सोमवार","मंगळवार","बुधवार","गुरुवार","शुक्रवार","शनिवार"];
-  document.getElementById(labelId).innerText = days[new Date(val+"T00:00:00").getDay()];
+  document.getElementById(labelId).innerText = days[new Date(v+"T00:00:00").getDay()];
 }
 
 function addDate2() {
@@ -161,14 +124,12 @@ function removeDate2() {
   document.getElementById("date2").value = "";
 }
 
-// ── DATE EXISTS WARNING ──
 async function checkIfDateAlreadySaved() {
   const sel = document.getElementById("date1").value;
   if (!sel) return;
   try {
-    const { data, error } = await supabaseClient.from("records").select("data");
-    if (error || !data) return;
-    const found = data.find(r => r.data && (r.data.date1===sel || r.data.date2===sel));
+    const { data } = await supabaseClient.from("records").select("data");
+    const found = (data||[]).find(r => r.data && (r.data.date1===sel || r.data.date2===sel));
     let banner = document.getElementById("date-warning-banner");
     if (!banner) {
       banner = document.createElement("div");
@@ -187,84 +148,131 @@ function hideDateWarning() {
   if (b) b.style.display = "none";
 }
 
-// ── SHILLAK CARRY-FORWARD (FULLY FIXED) ──
-// Reads shillak directly from saved record's shillak field
-// Fallback: calculates from ekun - vikri
-// NEVER reads dilela field
+// ══════════════════════════════════════════════
+// SHILLAK CARRY-FORWARD — DEFINITIVE FIX
+// 
+// Algorithm:
+// 1. Get all records from Supabase
+// 2. Sort by end-date DESCENDING
+// 3. Find the FIRST record whose end-date < selected date
+// 4. Build shillak map from that record's shillak field
+// 5. Fill dilela maal boxes with matching name's shillak
+// ══════════════════════════════════════════════
 async function loadYesterdayShillak() {
   const selectedDate = document.getElementById("date1").value;
   if (!selectedDate) { clearAllDilelaInputs(); return; }
 
-  try {
-    const { data: records, error } = await supabaseClient.from("records").select("*");
-    if (error || !records || records.length === 0) { clearAllDilelaInputs(); return; }
+  console.log("🔍 Selected date:", selectedDate);
 
-    // Find latest non-holiday record before selected date
-    let best = null, bestDate = null;
+  try {
+    const { data: records, error } = await supabaseClient
+      .from("records")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error || !records || records.length === 0) {
+      console.log("❌ No records found");
+      clearAllDilelaInputs();
+      return;
+    }
+
+    console.log("📋 Total records:", records.length);
+
+    // Find the most recent NON-HOLIDAY record whose end-date is before selected date
+    // End-date = date2 if combined record, else date1
+    let bestRecord = null;
+    let bestEndDate = null;
+
     records.forEach(function(rec) {
       const d = rec.data;
-      if (!d || !d.date1 || d.isHoliday) return;
-      const endDate = d.date2 ? d.date2 : d.date1;
-      if (endDate >= selectedDate) return;
-      if (!bestDate || endDate > bestDate) { bestDate = endDate; best = rec; }
+      if (!d || !d.date1) return;
+      if (d.isHoliday) return;
+
+      // Get the END date of this record
+      const endDate = (d.date2 && d.date2.trim() !== "") ? d.date2 : d.date1;
+
+      console.log("Checking record:", d.date1, "endDate:", endDate, "vs selected:", selectedDate);
+
+      // Only consider records that END before the selected date
+      if (endDate >= selectedDate) {
+        console.log("  → SKIPPED (not before selected date)");
+        return;
+      }
+
+      // Pick the one with latest end-date
+      if (bestEndDate === null || endDate > bestEndDate) {
+        bestEndDate = endDate;
+        bestRecord = rec;
+        console.log("  → NEW BEST:", endDate);
+      }
     });
 
-    if (!best) { clearAllDilelaInputs(); return; }
+    if (!bestRecord) {
+      console.log("❌ No suitable record found before", selectedDate);
+      clearAllDilelaInputs();
+      return;
+    }
 
-    console.log("✅ Carry-forward from:", bestDate);
+    console.log("✅ Using record:", bestRecord.data.date1, "endDate:", bestEndDate);
+    console.log("📦 Products in record:", JSON.stringify(bestRecord.data.products));
+
     clearAllDilelaInputs();
 
-    // Build shillak map — name → shillak value
+    // Build name → shillak map
     const shillakMap = {};
-    (best.data.products || []).forEach(function(p) {
-      if (!p.name || p.name.trim() === "") return;
+    (bestRecord.data.products || []).forEach(function(p) {
+      const name = (p.name || "").trim();
+      if (!name) return;
 
-      // METHOD 1: Read shillak field directly
-      // shillak is what owner typed in शिल्लक box
+      // Get shillak value — the number owner typed in शिल्लक box
+      // It is saved as string like "13" or "0" or ""
+      const shillakRaw = p.shillak;
       let shillakVal = 0;
 
-      if (p.shillak !== undefined && p.shillak !== null && p.shillak !== "") {
-        const parsed = parseFloat(String(p.shillak).trim());
-        if (!isNaN(parsed) && parsed >= 0) shillakVal = parsed;
+      if (shillakRaw !== null && shillakRaw !== undefined && shillakRaw !== "") {
+        const parsed = parseFloat(String(shillakRaw));
+        if (!isNaN(parsed)) shillakVal = parsed;
       }
 
-      // METHOD 2: If shillak is 0 or missing, calculate from ekun - vikri
+      // If shillak is 0 or empty, try ekun - vikri as fallback
       if (shillakVal === 0) {
-        const ekun  = parseFloat(String(p.ekun  || "0").trim()) || 0;
-        const vikri = parseFloat(String(p.vikri || "0").trim()) || 0;
-        const calc  = ekun - vikri;
-        if (calc > 0) shillakVal = calc;
+        const ekunRaw  = String(p.ekun  || "0").trim();
+        const vikriRaw = String(p.vikri || "0").trim();
+        const ekun  = parseFloat(ekunRaw)  || 0;
+        const vikri = parseFloat(vikriRaw) || 0;
+        const diff = ekun - vikri;
+        if (diff > 0) shillakVal = diff;
       }
 
-      console.log("▶", p.name, "shillak:", p.shillak, "ekun:", p.ekun, "vikri:", p.vikri, "→ using:", shillakVal);
-
-      // Store even if 0 — we want to fill 0 too so owner knows there's nothing left
-      shillakMap[p.name.trim()] = shillakVal;
+      shillakMap[name] = shillakVal;
+      console.log("  Map:", name, "→", shillakVal, "(raw shillak:", shillakRaw, ")");
     });
 
-    console.log("📦 शिल्लक map:", shillakMap);
-
-    // Fill matching rows in today's table
+    // Fill matching rows
     let filled = 0;
     document.querySelectorAll("#table-body tr[data-productname]").forEach(function(tr) {
       const name = (tr.getAttribute("data-productname") || "").trim();
-      if (!name || !(name in shillakMap)) return;
+      if (!name) return;
+
       const shillak = shillakMap[name];
+      if (shillak === undefined) return; // product not in previous record
+
       const inp = tr.querySelector(".dilela-input");
       if (!inp) return;
-      // Only fill if shillak > 0 (no point showing 0 in dilela maal)
+
       if (shillak > 0) {
         inp.value = shillak;
         inp.placeholder = "";
         calculateRow(tr.getAttribute("data-id"));
         filled++;
+        console.log("  Filled:", name, "=", shillak);
       }
     });
 
-    console.log("✏️ Filled", filled, "rows");
+    console.log("✏️ Total filled:", filled, "rows");
 
-  } catch(e) {
-    console.error("Shillak error:", e);
+  } catch(err) {
+    console.error("❌ Shillak error:", err);
     clearAllDilelaInputs();
   }
 }
@@ -281,7 +289,7 @@ function clearAllDilelaInputs() {
 // ── BUILD TABLE ──
 function buildMainTable() {
   const tbody = document.getElementById("table-body");
-  tbody.innerHTML = ""; currentRows = [];
+  tbody.innerHTML = "";
   const order = ["g1","g2","g3","g4","custom"];
   const sorted = [...PRODUCTS].sort((a,b) => order.indexOf(a.group) - order.indexOf(b.group));
   let lastGroup = "";
@@ -324,10 +332,8 @@ function addProductRow(id, name, price, dilelaVal, shillakVal) {
     </td>
     <td data-label="विक्री"><span class="cell-label">विक्री</span><span class="auto-cell vikri-cell">0</span></td>
     <td class="rakkam-cell table-only-rakkam" data-label="रक्कम">₹0</td>
-    <td class="delete-cell"><button class="small-btn red" onclick="deleteRow('${id}')">✕</button></td>
-  `;
+    <td class="delete-cell"><button class="small-btn red" onclick="deleteRow('${id}')">✕</button></td>`;
   tbody.appendChild(tr);
-  currentRows.push({ id, name, price });
 }
 
 function calculateRow(id) {
@@ -345,7 +351,7 @@ function calculateRow(id) {
   const rakkam = vikri * price;
   tr.querySelector(".ekun-cell").innerText = ekun;
   tr.querySelector(".vikri-cell").innerText = vikri;
-  tr.querySelectorAll(".rakkam-cell").forEach(el => el.innerText = "₹" + rakkam);
+  tr.querySelectorAll(".rakkam-cell").forEach(el => el.innerText = "₹"+rakkam);
   calculateAll();
 }
 
@@ -379,9 +385,8 @@ function confirmAddProduct() {
   buildMainTable();
 }
 
-// ── EXPENSE TABLE ──
 function buildExpenseTable() {
-  document.getElementById("expense-body").innerHTML = ""; currentExpenses = [];
+  document.getElementById("expense-body").innerHTML = "";
   EXPENSES_LIST.forEach(e => addExpenseRowToDOM(e.id, e.name, ""));
 }
 function addExpenseRowToDOM(id, name, val) {
@@ -391,10 +396,8 @@ function addExpenseRowToDOM(id, name, val) {
   tr.innerHTML = `
     <td class="name-cell">${name}</td>
     <td><input type="number" class="expense-input" placeholder="" value="${val||''}" oninput="calculateAll()" /></td>
-    <td><button class="small-btn red" onclick="deleteExpenseRow('${id}')">✕</button></td>
-  `;
+    <td><button class="small-btn red" onclick="deleteExpenseRow('${id}')">✕</button></td>`;
   tbody.appendChild(tr);
-  currentExpenses.push({ id, name });
 }
 function addExpenseRow() {
   const name = prompt("नवीन खर्चाचे नाव लिहा:");
@@ -412,7 +415,6 @@ function deleteExpenseRow(id) {
   calculateAll();
 }
 
-// ── YENE TABLE (1 row default) ──
 function buildYeneTable() {
   document.getElementById("yene-body").innerHTML = "";
   addYeneRow();
@@ -426,8 +428,7 @@ function addYeneRow(nv, av) {
   tr.innerHTML = `
     <td><input type="text" class="yene-name-input" placeholder="नाव लिहा" value="${nv||''}" /></td>
     <td><input type="number" class="yene-amount-input" placeholder="" value="${av||''}" oninput="calcYene()" /></td>
-    <td><button class="small-btn red" onclick="deleteYeneRow('${id}')">✕</button></td>
-  `;
+    <td><button class="small-btn red" onclick="deleteYeneRow('${id}')">✕</button></td>`;
   tbody.appendChild(tr);
 }
 function deleteYeneRow(id) {
@@ -440,7 +441,6 @@ function calcYene() {
   document.querySelectorAll("#yene-body .yene-amount-input").forEach(i => t += parseFloat(i.value)||0);
   document.getElementById("yene-total").innerText = "₹"+t;
 }
-// alias
 function calculateYeneTotal() { calcYene(); }
 
 function calculateBaki() {
@@ -473,27 +473,21 @@ function calculateAll() {
   calculateBaki();
 }
 
-// ── STORAGE ──
 function saveProductsToStorage() {
   localStorage.setItem("shopmate_products", JSON.stringify(PRODUCTS));
 }
 function loadProductsFromStorage() {
-  // Always update prices of default products from code
-  // but keep any custom products owner added
+  // Always use DEFAULT_PRODUCTS prices but keep custom products
   const saved = localStorage.getItem("shopmate_products");
   if (saved) {
-    const savedProducts = JSON.parse(saved);
-    // Keep only custom products (not in default list)
-    const customProducts = savedProducts.filter(function(sp) {
-      return !DEFAULT_PRODUCTS.find(function(dp) { return dp.id === sp.id; });
-    });
-    // Use default products (with updated prices) + custom products
+    const savedList = JSON.parse(saved);
+    const customProducts = savedList.filter(sp => !DEFAULT_PRODUCTS.find(dp => dp.id === sp.id));
     PRODUCTS = [...DEFAULT_PRODUCTS, ...customProducts];
-    localStorage.setItem("shopmate_products", JSON.stringify(PRODUCTS));
   }
   const e = localStorage.getItem("shopmate_expenses");
   if (e) EXPENSES_LIST = JSON.parse(e);
-}function saveExpensesToStorage() {
+}
+function saveExpensesToStorage() {
   localStorage.setItem("shopmate_expenses", JSON.stringify(EXPENSES_LIST));
 }
 
@@ -533,7 +527,8 @@ function collectFormData() {
   });
 
   return {
-    date1, date2, day1, day2, products, expenses, yeneEntries:yene,
+    date1, date2, day1, day2,
+    products, expenses, yeneEntries:yene,
     rakhRakkam:   document.getElementById("rakh-input").value||"0",
     baki:         document.getElementById("baki-amount").innerText,
     totalRakkam:  document.getElementById("total-rakkam").innerText,
@@ -564,22 +559,20 @@ async function saveRecord() {
       if (!confirm("⚠️ "+lbl+" ची नोंद आधीच आहे. अपडेट करायची का?")) return;
       const { error:ue } = await supabaseClient.from("records").update({ data }).eq("id", conflict.id);
       if (ue) throw ue;
-      alert("✅ नोंद अपडेट झाली!\n\nनवीन नोंदीसाठी पेज रिफ्रेश होत आहे...");
+      alert("✅ नोंद अपडेट झाली!\nपेज रिफ्रेश होत आहे...");
     } else {
       const { error:ie } = await supabaseClient.from("records").insert([{ data }]);
       if (ie) throw ie;
-      alert("✅ नोंद सेव्ह झाली!\n\nनवीन नोंदीसाठी पेज रिफ्रेश होत आहे...");
+      alert("✅ नोंद सेव्ह झाली!\nपेज रिफ्रेश होत आहे...");
     }
     hideDateWarning();
     setTimeout(() => window.location.reload(), 1000);
-  } catch(e) {
-    alert("❌ चूक: "+e.message);
-  }
+  } catch(e) { alert("❌ चूक: "+e.message); }
 }
 
 function printRecord() { window.print(); }
 
-// ── PAGE NAV WITH BACK BUTTON SUPPORT ──
+// ── PAGE NAV WITH BACK BUTTON ──
 function showPage(pageName, addToHistory) {
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.getElementById("page-"+pageName).classList.add("active");
@@ -589,9 +582,8 @@ function showPage(pageName, addToHistory) {
     history.pushState({ page: pageName }, "", "#"+pageName);
   }
 }
-
-window.addEventListener("popstate", function(event) {
-  if (event.state && event.state.page) showPage(event.state.page, false);
+window.addEventListener("popstate", function(e) {
+  if (e.state && e.state.page) showPage(e.state.page, false);
   else showPage("home", false);
 });
 
@@ -599,9 +591,9 @@ window.addEventListener("popstate", function(event) {
 async function loadHistory() {
   const div = document.getElementById("history-list");
   div.innerHTML = "<p style='text-align:center;color:#888;padding:20px;'>लोड होत आहे...</p>";
-  const { data: recs, error } = await supabaseClient.from("records").select("*").order("created_at", { ascending:false });
+  const { data: recs, error } = await supabaseClient.from("records").select("*").order("created_at",{ascending:false});
   if (error) { div.innerHTML = "<p style='color:red;padding:16px;'>चूक: "+error.message+"</p>"; return; }
-  if (!recs || recs.length===0) { div.innerHTML = "<p style='text-align:center;color:#888;padding:20px;'>अजून कोणतीही नोंद नाही</p>"; return; }
+  if (!recs||recs.length===0) { div.innerHTML = "<p style='text-align:center;color:#888;padding:20px;'>अजून कोणतीही नोंद नाही</p>"; return; }
   div.innerHTML = "";
   recs.forEach(function(rec) {
     const d = rec.data; if (!d) return;
@@ -630,20 +622,19 @@ function fmtDate(s) {
   if (!s) return "";
   const p = s.split("-"); return p[2]+"/"+p[1]+"/"+p[0];
 }
-// alias used in older code
 function formatDate(s) { return fmtDate(s); }
 
 async function deleteHistoryRecord(id) {
   if (!confirm("ही नोंद कायमची डिलीट करायची का?")) return;
-  await supabaseClient.from("records").delete().eq("id", id);
+  await supabaseClient.from("records").delete().eq("id",id);
   loadHistory();
 }
 
-// ── VIEW / EDIT RECORD ──
+// ── VIEW / EDIT ──
 let currentViewRecordId = null, isEditMode = false;
 
 async function viewHistoryRecord(id) {
-  const { data: rec, error } = await supabaseClient.from("records").select("*").eq("id", id).single();
+  const { data: rec, error } = await supabaseClient.from("records").select("*").eq("id",id).single();
   if (error) { alert("चूक: "+error.message); return; }
   currentViewRecordId = id;
   isEditMode = false;
@@ -659,8 +650,8 @@ function buildRecordViewPage(d) {
 
   const tbody = document.getElementById("rv-table-body");
   tbody.innerHTML = "";
-  (d.products||[]).forEach(function(p, i) {
-    const nm = (p.name||"").trim() || ("माल "+(i+1));
+  (d.products||[]).forEach(function(p,i) {
+    const nm = (p.name||"").trim()||("माल "+(i+1));
     const tr = document.createElement("tr");
     tr.dataset.index = i;
     tr.dataset.price = p.price||0;
@@ -676,7 +667,7 @@ function buildRecordViewPage(d) {
 
   const expBody = document.getElementById("rv-expense-body");
   expBody.innerHTML = "";
-  (d.expenses||[]).forEach(function(exp, i) {
+  (d.expenses||[]).forEach(function(exp,i) {
     if (!exp.name) return;
     const tr = document.createElement("tr");
     tr.dataset.index = i;
@@ -685,11 +676,11 @@ function buildRecordViewPage(d) {
     expBody.appendChild(tr);
   });
 
-  document.getElementById("rv-total-rakkam").innerText  = d.totalRakkam  ||"₹0";
+  document.getElementById("rv-total-rakkam").innerText  = d.totalRakkam ||"₹0";
   document.getElementById("rv-total-expense").innerText = d.totalExpense||"₹0";
-  document.getElementById("rv-final-rakkam").innerText  = d.totalRakkam  ||"₹0";
+  document.getElementById("rv-final-rakkam").innerText  = d.totalRakkam ||"₹0";
   document.getElementById("rv-final-expense").innerText = d.totalExpense||"₹0";
-  document.getElementById("rv-final-total").innerText   = d.netProfit    ||"₹0";
+  document.getElementById("rv-final-total").innerText   = d.netProfit   ||"₹0";
 
   const yene = d.yeneEntries||[];
   const ys = document.getElementById("rv-yene-section");
@@ -739,7 +730,6 @@ function rvCalculateAll() {
 }
 
 function toggleEditMode() { isEditMode ? setViewMode() : setEditMode(); }
-
 function setViewMode() {
   isEditMode = false;
   document.querySelectorAll("#rv-table-body input, #rv-expense-body input").forEach(i => i.disabled=true);
@@ -775,14 +765,14 @@ async function saveEditedRecord() {
     expenses.push({ name:tr.querySelector(".name-cell").innerText.trim(), amount:tr.querySelector(".rv-expense-input").value||"0" });
   });
   try {
-    const { data:ex } = await supabaseClient.from("records").select("data").eq("id", currentViewRecordId).single();
+    const { data:ex } = await supabaseClient.from("records").select("data").eq("id",currentViewRecordId).single();
     const upd = { ...ex.data, products, expenses,
       totalRakkam:  document.getElementById("rv-total-rakkam").innerText,
       totalExpense: document.getElementById("rv-total-expense").innerText,
       netProfit:    document.getElementById("rv-final-total").innerText,
       editedAt:     new Date().toISOString()
     };
-    const { error:ue } = await supabaseClient.from("records").update({ data:upd }).eq("id", currentViewRecordId);
+    const { error:ue } = await supabaseClient.from("records").update({ data:upd }).eq("id",currentViewRecordId);
     if (ue) throw ue;
     alert("✅ बदल सेव्ह झाले!");
     setViewMode();
@@ -828,7 +818,7 @@ async function markHoliday() {
     const { data:all } = await supabaseClient.from("records").select("id, data");
     const ex = (all||[]).find(r => r.data && (r.data.date1===date1||r.data.date2===date1));
     const hd = { date1, date2:"", day1, isHoliday:true, recordKey:date1, savedAt:new Date().toISOString() };
-    if (ex) await supabaseClient.from("records").update({ data:hd }).eq("id", ex.id);
+    if (ex) await supabaseClient.from("records").update({ data:hd }).eq("id",ex.id);
     else    await supabaseClient.from("records").insert([{ data:hd }]);
     alert("✅ "+day1+", "+date1+" सुट्टी म्हणून सेव्ह झाली!");
     hideDateWarning();

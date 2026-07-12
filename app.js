@@ -385,8 +385,23 @@ function confirmAddProduct() {
   buildMainTable();
 }
 
+// Default expenses — always shown every day
+const DEFAULT_EXPENSES = [
+  { id:"e1", name:"चहा"    },
+  { id:"e2", name:"झार"    },
+  { id:"e3", name:"पगार"   },
+  { id:"e4", name:"पिग्मी" },
+  { id:"e5", name:"सिगारेट"},
+];
+
 function buildExpenseTable() {
-  document.getElementById("expense-body").innerHTML = "";
+  const tbody = document.getElementById("expense-body");
+  tbody.innerHTML = "";
+
+  // Always start with default expenses
+  const customExp = JSON.parse(localStorage.getItem("shopmate_custom_expenses") || "[]");
+  EXPENSES_LIST = [...DEFAULT_EXPENSES, ...customExp];
+
   EXPENSES_LIST.forEach(e => addExpenseRowToDOM(e.id, e.name, ""));
 }
 function addExpenseRowToDOM(id, name, val) {
@@ -406,12 +421,21 @@ function addExpenseRow() {
   const id = "exp"+rowCounter;
   addExpenseRowToDOM(id, name, "");
   EXPENSES_LIST.push({ id, name });
-  saveExpensesToStorage();
+  const customExp = EXPENSES_LIST.filter(e => !DEFAULT_EXPENSES.find(de => de.id === e.id));
+  localStorage.setItem("shopmate_custom_expenses", JSON.stringify(customExp));
 }
 function deleteExpenseRow(id) {
+  const isDefault = DEFAULT_EXPENSES.find(e => e.id === id);
+  if (isDefault) {
+    alert("हा डीफॉल्ट खर्च काढता येत नाही!");
+    return;
+  }
   if (!confirm("हा खर्च काढायचा का?")) return;
   const tr = document.querySelector(`#expense-body tr[data-id="${id}"]`);
   if (tr) tr.remove();
+  EXPENSES_LIST = EXPENSES_LIST.filter(e => e.id !== id);
+  const customExp = EXPENSES_LIST.filter(e => !DEFAULT_EXPENSES.find(de => de.id === e.id));
+  localStorage.setItem("shopmate_custom_expenses", JSON.stringify(customExp));
   calculateAll();
 }
 

@@ -397,13 +397,11 @@ const DEFAULT_EXPENSES = [
 function buildExpenseTable() {
   const tbody = document.getElementById("expense-body");
   tbody.innerHTML = "";
-
-  // Always start with default expenses
-  const customExp = JSON.parse(localStorage.getItem("shopmate_custom_expenses") || "[]");
-  EXPENSES_LIST = [...DEFAULT_EXPENSES, ...customExp];
-
+  // Always start fresh with only default expenses
+  EXPENSES_LIST = [...DEFAULT_EXPENSES];
   EXPENSES_LIST.forEach(e => addExpenseRowToDOM(e.id, e.name, ""));
 }
+
 function addExpenseRowToDOM(id, name, val) {
   const tbody = document.getElementById("expense-body");
   const tr = document.createElement("tr");
@@ -421,8 +419,7 @@ function addExpenseRow() {
   const id = "exp"+rowCounter;
   addExpenseRowToDOM(id, name, "");
   EXPENSES_LIST.push({ id, name });
-  const customExp = EXPENSES_LIST.filter(e => !DEFAULT_EXPENSES.find(de => de.id === e.id));
-  localStorage.setItem("shopmate_custom_expenses", JSON.stringify(customExp));
+  // NOT saved to localStorage — today only
 }
 function deleteExpenseRow(id) {
   const isDefault = DEFAULT_EXPENSES.find(e => e.id === id);
@@ -434,9 +431,8 @@ function deleteExpenseRow(id) {
   const tr = document.querySelector(`#expense-body tr[data-id="${id}"]`);
   if (tr) tr.remove();
   EXPENSES_LIST = EXPENSES_LIST.filter(e => e.id !== id);
-  const customExp = EXPENSES_LIST.filter(e => !DEFAULT_EXPENSES.find(de => de.id === e.id));
-  localStorage.setItem("shopmate_custom_expenses", JSON.stringify(customExp));
   calculateAll();
+  // NOT saved to localStorage — gone after refresh
 }
 
 function buildYeneTable() {

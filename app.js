@@ -388,10 +388,11 @@ function confirmAddProduct() {
 // Default expenses — always shown every day
 const DEFAULT_EXPENSES = [
   { id:"e1", name:"चहा"    },
-  { id:"e2", name:"झार"    },
-  { id:"e3", name:"पगार"   },
-  { id:"e4", name:"पिग्मी" },
-  { id:"e5", name:"सिगारेट"},
+  { id:"e2", name:"ॲप"     },
+  { id:"e3", name:"झार"    },
+  { id:"e4", name:"पगार"   },
+  { id:"e5", name:"पिग्मी" },
+  { id:"e6", name:"सिगारेट"},
 ];
 
 function buildExpenseTable() {
